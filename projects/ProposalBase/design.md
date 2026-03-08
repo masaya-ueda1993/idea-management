@@ -153,9 +153,108 @@
 
 ---
 
-## Phase 3：DB設計
+## Phase 3：DB設計 ✅
 
-*→ Phase 2 確定後に追記*
+### ER図
+
+```
+users（ユーザー）
+  │
+  ├─── projects（案件）
+  │         │
+  │         └─── proposals（提案書）
+  │                   │
+  │                   └─── proposal_sections（提案書セクション）
+  │
+  └─── knowledge_items（自社ナレッジ）
+             │
+             └─── knowledge_item_tag（中間テーブル）
+                        │
+                        └─── tags（タグ）
+```
+
+### テーブル定義
+
+#### usersテーブル
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | BIGINT PK | ID |
+| name | VARCHAR(100) | 氏名 |
+| email | VARCHAR(255) | メールアドレス |
+| password | VARCHAR(255) | パスワード（ハッシュ） |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
+
+#### projectsテーブル（案件）
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | BIGINT PK | ID |
+| user_id | BIGINT FK | ユーザーID |
+| municipality | VARCHAR(100) | 自治体名 |
+| title | VARCHAR(255) | 案件名 |
+| deadline | DATE | 締切日 |
+| status | ENUM | 準備中/作成中/提出済/採択/不採択 |
+| requirements_url | VARCHAR(500) | 募集要項URL |
+| template_file | VARCHAR(500) | 雛形ファイルパス |
+| memo | TEXT | メモ |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
+
+#### proposalsテーブル（提案書）
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | BIGINT PK | ID |
+| project_id | BIGINT FK | 案件ID |
+| title | VARCHAR(255) | 提案書タイトル |
+| version | INT | バージョン番号 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
+
+#### proposal_sectionsテーブル（提案書セクション）
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | BIGINT PK | ID |
+| proposal_id | BIGINT FK | 提案書ID |
+| sort_order | INT | 表示順 |
+| title | VARCHAR(255) | セクション名（例：会社概要） |
+| body | TEXT | 本文 |
+| max_pages | TINYINT | ページ数上限・NULL可（自治体指定） |
+| note | VARCHAR(255) | 備考・制約メモ・NULL可（例：A4縦・図表含む） |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
+
+#### knowledge_itemsテーブル（自社ナレッジ）
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | BIGINT PK | ID |
+| user_id | BIGINT FK | ユーザーID |
+| category | ENUM | 強み/実績/会社概要/その他 |
+| title | VARCHAR(255) | タイトル |
+| body | TEXT | 本文 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
+
+#### tagsテーブル
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | BIGINT PK | ID |
+| name | VARCHAR(50) | タグ名 |
+
+#### knowledge_item_tagテーブル（中間テーブル）
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| knowledge_item_id | BIGINT FK | ナレッジID |
+| tag_id | BIGINT FK | タグID |
+
+> **中間テーブルとは？**
+> ナレッジとタグは「多対多」の関係（1つのナレッジに複数タグ、1つのタグが複数ナレッジに使われる）のため、この2つをつなぐ専用テーブルが必要。Laravelでは`belongsToMany`で扱う。
 
 ---
 
